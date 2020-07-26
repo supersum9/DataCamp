@@ -11,3 +11,4 @@ _ = plt.plot(x_std10, y_std10, marker = '.', linestyle= 'none')
 # Make a legend and show the plot
 _ = plt.legend(('std = 1', 'std = 3', 'std = 10'), loc='lower right')
 plt.show()
+#******************#
