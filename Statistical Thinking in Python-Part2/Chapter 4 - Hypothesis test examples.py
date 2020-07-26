@@ -109,4 +109,3 @@ p = np.sum(bs_replicates >= np.mean(control) - np.mean(treated)) \
 print('p-value =', p)
 
 #*********************************************************************#
-
