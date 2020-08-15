@@ -95,3 +95,80 @@ print('Your model, trained with numeric data only, yields logloss score: {}'.for
 
 #*********************************************************************#
 
+#***************A very brief introduction to NLP**********************#
+
+#Creating a bag-of-words in scikit-learn#
+
+# Import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Create the token pattern: TOKENS_ALPHANUMERIC
+TOKENS_ALPHANUMERIC = '[A-Za-z0-9]+(?=\\s+)'
+
+# Fill missing values in df.Position_Extra
+df.Position_Extra = df.Position_Extra.fillna('')
+
+# Instantiate the CountVectorizer: vec_alphanumeric
+vec_alphanumeric = CountVectorizer(token_pattern=TOKENS_ALPHANUMERIC)
+
+# Fit to the data
+vec_alphanumeric.fit(df.Position_Extra)
+
+# Print the number of tokens and first 15 tokens
+msg = "There are {} tokens in Position_Extra if we split on non-alpha numeric"
+print(msg.format(len(vec_alphanumeric.get_feature_names())))
+print(vec_alphanumeric.get_feature_names()[:15])
+
+#*********************************************************************#
+
+#Combining text columns for tokenization#
+
+# Define combine_text_columns()
+def combine_text_columns(data_frame, to_drop=NUMERIC_COLUMNS + LABELS):
+    """ converts all text in each row of data_frame to single vector """
+
+    # Drop non-text columns that are in the df
+    to_drop = set(to_drop) & set(data_frame.columns.tolist())
+    text_data = data_frame.drop(to_drop, axis=1)
+
+    # Replace nans with blanks
+    text_data = text_data.fillna("")
+
+    # Join all text items in a row that have a space in between
+    return text_data.apply(lambda x: " ".join(x), axis=1)
+
+#*********************************************************************#
+
+#What's in a token?#
+
+# Import the CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Create the basic token pattern
+TOKENS_BASIC = '\\S+(?=\\s+)'
+
+# Create the alphanumeric token pattern
+TOKENS_ALPHANUMERIC = '[A-Za-z0-9]+(?=\\s+)'
+
+# Instantiate basic CountVectorizer: vec_basic
+vec_basic = CountVectorizer(token_pattern=TOKENS_BASIC)
+
+# Instantiate alphanumeric CountVectorizer: vec_alphanumeric
+vec_alphanumeric = CountVectorizer(token_pattern=TOKENS_ALPHANUMERIC)
+
+# Create the text vector
+text_vector = combine_text_columns(df)
+
+# Fit and transform vec_basic
+vec_basic.fit_transform(text_vector)
+
+# Print number of tokens of vec_basic
+print("There are {} tokens in the dataset".format(len(vec_basic.get_feature_names())))
+
+# Fit and transform vec_alphanumeric
+vec_alphanumeric.fit_transform(text_vector)
+
+# Print number of tokens of vec_alphanumeric
+print("There are {} alpha-numeric tokens in the dataset".format(len(vec_alphanumeric.get_feature_names())))
+
+#*********************************************************************#
