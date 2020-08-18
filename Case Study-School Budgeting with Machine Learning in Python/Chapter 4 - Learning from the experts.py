@@ -103,3 +103,55 @@ pl = Pipeline([
 
 #****************Learning from the expert: the winning model**********#
 
+#Implementing the hashing trick in scikit-learn#
+
+# Import HashingVectorizer
+from sklearn.feature_extraction.text import HashingVectorizer
+
+# Get text data: text_data
+text_data = combine_text_columns(X_train)
+
+# Create the token pattern: TOKENS_ALPHANUMERIC
+TOKENS_ALPHANUMERIC = '[A-Za-z0-9]+(?=\\s+)'
+
+# Instantiate the HashingVectorizer: hashing_vec
+hashing_vec = HashingVectorizer(token_pattern=TOKENS_ALPHANUMERIC)
+
+# Fit and transform the Hashing Vectorizer
+hashed_text = hashing_vec.fit_transform(text_data)
+
+# Create DataFrame and print the head
+hashed_df = pd.DataFrame(hashed_text.data)
+print(hashed_df.head())
+
+#*********************************************************************#
+
+#Build the winning model#
+
+# Import the hashing vectorizer
+from sklearn.feature_extraction.text import HashingVectorizer
+
+# Instantiate the winning model pipeline: pl
+pl = Pipeline([
+        ('union', FeatureUnion(
+            transformer_list = [
+                ('numeric_features', Pipeline([
+                    ('selector', get_numeric_data),
+                    ('imputer', Imputer())
+                ])),
+                ('text_features', Pipeline([
+                    ('selector', get_text_data),
+                    ('vectorizer', HashingVectorizer(token_pattern=TOKENS_ALPHANUMERIC,
+                                                     non_negative=True, norm=None, binary=False,
+                                                     ngram_range=(1,2))),
+                    ('dim_red', SelectKBest(chi2, chi_k))
+                ]))
+             ]
+        )),
+        ('int', SparseInteractions(degree=2)),
+        ('scale', MaxAbsScaler()),
+        ('clf', OneVsRestClassifier(LogisticRegression()))
+    ])
+
+#*********************************************************************#
+
