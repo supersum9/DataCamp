@@ -63,3 +63,85 @@ print("\n")
 
 #*********************************************************************#
 
+#*************Logistic regressionand probabilities********************#
+
+#Regularization and probabilities#
+
+# Set the regularization strength
+model = LogisticRegression(C=0.1)
+
+# Fit and plot
+model.fit(X,y)
+plot_classifier(X,y,model,proba=True)
+
+# Predict probabilities on training points
+prob = model.predict_proba(X)
+print("Maximum predicted probability", np.max(prob))
+
+#*********************************************************************#
+
+#Visualizing easy and difficult examples#
+
+lr = LogisticRegression()
+lr.fit(X,y)
+
+# Get predicted probabilities
+proba = lr.predict_proba(X)
+
+# Sort the example indices by their maximum probability
+proba_inds = np.argsort(np.max(proba,axis=1))
+
+# Show the most confident (least ambiguous) digit
+show_digit(proba_inds[-1], lr)
+
+# Show the least confident (most ambiguous) digit
+show_digit(proba_inds[0], lr)
+
+#*********************************************************************#
+
+#*********************Multi-class logistic regression*****************#
+
+#Fitting multi-class logistic regression#
+
+# Fit one-vs-rest logistic regression classifier
+lr_ovr = LogisticRegression()
+lr_ovr.fit(X_train, y_train)
+
+print("OVR training accuracy:", lr_ovr.score(X_train, y_train))
+print("OVR test accuracy    :", lr_ovr.score(X_test, y_test))
+
+# Fit softmax classifier
+lr_mn = LogisticRegression(multi_class='multinomial', solver='lbfgs')
+lr_mn.fit(X_train, y_train)
+
+print("Softmax training accuracy:", lr_mn.score(X_train, y_train))
+print("Softmax test accuracy    :", lr_mn.score(X_test, y_test))
+
+#*********************************************************************#
+
+#Visualizing multi-class logistic regression#
+
+# Print training accuracies
+print("Softmax     training accuracy:", lr_mn.score(X_train, y_train))
+print("One-vs-rest training accuracy:", lr_ovr.score(X_train, y_train))
+
+# Create the binary classifier (class 1 vs. rest)
+lr_class_1 = LogisticRegression(C=100)
+lr_class_1.fit(X_train, y_train==1)
+
+# Plot the binary classifier (class 1 vs. rest)
+plot_classifier(X_train, y_train==1, lr_class_1)
+
+#*********************************************************************#
+
+#One-vs-rest SVM#
+
+# We'll use SVC instead of LinearSVC from now on
+from sklearn.svm import SVC
+
+# Create/plot the binary classifier (class 1 vs. rest)
+svm_class_1 = SVC()
+svm_class_1.fit(X_train, y_train == 1)
+plot_classifier(X_train, y_train==1, svm_class_1)
+
+#*********************************************************************#
