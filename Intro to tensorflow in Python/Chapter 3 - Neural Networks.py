@@ -75,3 +75,135 @@ print('\n shape of predictions: ', predictions.shape)
 
 #********************************Activation functions*************************#
 
+#Binary classification problems#
+
+# Construct input layer from features
+inputs = constant(bill_amounts,float32)
+
+# Define first dense layer
+dense1 = keras.layers.Dense(3, activation='relu')(inputs)
+
+# Define second dense layer
+dense2 = keras.layers.Dense(2, activation='relu')(dense1)
+
+# Define output layer
+outputs = keras.layers.Dense(1, activation='sigmoid')(dense2)
+
+# Print error for first five examples
+error = default[:5] - outputs.numpy()[:5]
+print(error)
+
+#*****************************************************************************#
+
+#Multiclass classification problems
+
+# Construct input layer from borrower features
+inputs = constant(borrower_features, float32)
+
+# Define first dense layer
+dense1 = keras.layers.Dense(10, activation='sigmoid')(inputs)
+
+# Define second dense layer
+dense2 = keras.layers.Dense(8, activation='relu')(dense1)
+
+# Define output layer
+outputs = keras.layers.Dense(6, activation='softmax')(dense2)
+
+# Print first five predictions
+print(outputs.numpy()[:5])
+
+#*****************************************************************************#
+
+#********************************Optimizers***********************************#
+
+#The dangers of local minima#
+
+# Initialize x_1 and x_2
+x_1 = Variable(6.0,float32)
+x_2 = Variable(0.3,float32)
+
+# Define the optimization operation
+opt = keras.optimizers.SGD(learning_rate=0.01)
+
+for j in range(100):
+	# Perform minimization using the loss function and x_1
+	opt.minimize(lambda: loss_function(x_1), var_list=[x_1])
+	# Perform minimization using the loss function and x_2
+	opt.minimize(lambda: loss_function(x_2), var_list=[x_2])
+
+# Print x_1 and x_2 as numpy arrays
+print(x_1.numpy(), x_2.numpy())
+
+#*****************************************************************************#
+
+#Avoiding local minima#
+
+# Initialize x_1 and x_2
+x_1 = Variable(0.05,float32)
+x_2 = Variable(0.05,float32)
+
+# Define the optimization operation for opt_1 and opt_2
+opt_1 = keras.optimizers.RMSprop(learning_rate=0.01, momentum=0.99)
+opt_2 = keras.optimizers.RMSprop(learning_rate=0.01, momentum=0.00)
+
+for j in range(100):
+	opt_1.minimize(lambda: loss_function(x_1), var_list=[x_1])
+    # Define the minimization operation for opt_2
+	opt_2.minimize(lambda: loss_function(x_2), var_list=[x_2])
+
+# Print x_1 and x_2 as numpy arrays
+print(x_1.numpy(), x_2.numpy())
+
+#*****************************************************************************#
+
+#********************Training a network in TensorFlow*************************#
+
+#Initialization in TensorFlow#
+
+# Define the layer 1 weights
+w1 = Variable(random.normal([23, 7]))
+
+# Initialize the layer 1 bias
+b1 = Variable(ones([7]))
+
+# Define the layer 2 weights
+w2 = Variable(random.normal([7,1]))
+
+# Define the layer 2 bias
+b2 = Variable(0.0)
+
+#*****************************************************************************#
+
+#Defining the model and loss function#
+
+# Define the model
+def model(w1, b1, w2, b2, features = borrower_features):
+	# Apply relu activation functions to layer 1
+	layer1 = keras.activations.relu(matmul(features, w1) + b1)
+    # Apply dropout
+	dropout = keras.layers.Dropout(0.25)(layer1)
+	return keras.activations.sigmoid(matmul(dropout, w2) + b2)
+
+# Define the loss function
+def loss_function(w1, b1, w2, b2, features = borrower_features, targets = default):
+	predictions = model(w1, b1, w2, b2)
+	# Pass targets and predictions to the cross entropy loss
+	return keras.losses.binary_crossentropy(targets, predictions)
+
+#*****************************************************************************#
+
+#Training neural networks with TensorFlow#
+
+# Train the model
+for j in range(100):
+    # Complete the optimizer
+	opt.minimize(lambda: loss_function(w1, b1, w2, b2),
+                 var_list=[w1, b1, w2, b2])
+
+# Make predictions with model
+model_predictions = model(w1, b1, w2, b2, test_features)
+
+# Construct the confusion matrix
+confusion_matrix(test_targets, model_predictions)
+
+#*****************************************************************************#
