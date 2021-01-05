@@ -125,3 +125,48 @@ print(model.evaluate([input_1, input_2], games_tourney['score_diff'],\
     verbose=False))
 
 #*****************************************************************************#
+
+#Fit the model and evaluate#
+
+# Fit the model to the games_season dataset
+model.fit([games_season['team_1'], games_season['team_2'], games_season['home']],
+          games_season['score_diff'],
+          epochs=1,
+          verbose=True,
+          validation_split=0.10,
+          batch_size=2048)
+
+# Evaluate the model on the games_tourney dataset
+print(model.evaluate([games_tourney['team_1'], games_tourney['team_2'], \
+    games_tourney['home']], games_tourney['score_diff'], verbose=False))
+
+#*****************************************************************************#
+
+#******************Summarizing and plotting models****************************#
+
+#Plotting models#
+
+# Imports
+import matplotlib.pyplot as plt
+from keras.utils import plot_model
+
+# Plot the model
+plot_model(model, to_file='model.png')
+
+# Display the image
+data = plt.imread('model.png')
+plt.imshow(data)
+plt.show()
+
+#*****************************************************************************#
+
+#****************************Stacking models**********************************#
+
+#Add the model predictions to the tournament data#
+
+# Predict
+games_tourney['pred'] = model.predict([games_tourney['team_1'], \
+    games_tourney['team_2'], games_tourney['home']])
+
+#*****************************************************************************#
+
