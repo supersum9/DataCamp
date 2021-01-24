@@ -158,3 +158,63 @@ params = params.build()
 
 #*******************************Ensemble**************************************#
 
+#Delayed flights with Gradient-Boosted Trees#
+
+# Import the classes required
+from pyspark.ml.classification import DecisionTreeClassifier, GBTClassifier
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+# Create model objects and train on training data
+tree = DecisionTreeClassifier().fit(flights_train)
+gbt = GBTClassifier().fit(flights_train)
+
+# Compare AUC on testing data
+evaluator = BinaryClassificationEvaluator()
+evaluator.evaluate(tree.transform(flights_test))
+evaluator.evaluate(gbt.transform(flights_test))
+
+# Find the number of trees and the relative importance of features
+print(gbt.trees)
+print(gbt.featureImportances)
+
+#*****************************************************************************#
+
+#Delayed flights with a Random Forest#
+
+# Create a random forest classifier
+forest = RandomForestClassifier()
+
+# Create a parameter grid
+params = ParamGridBuilder() \
+            .addGrid(forest.featureSubsetStrategy, \
+                ['all', 'onethird', 'sqrt', 'log2']) \
+            .addGrid(forest.maxDepth, [2, 5, 10]) \
+            .build()
+
+# Create a binary classification evaluator
+evaluator = BinaryClassificationEvaluator()
+
+# Create a cross-validator
+cv = CrossValidator(estimator= forest, \
+                    estimatorParamMaps= params, \
+                    evaluator= evaluator, \
+                    numFolds= 5)
+
+#*****************************************************************************#
+
+#Evaluating Random Forest#
+
+# Average AUC for each parameter combination in grid
+avg_auc = cv.avgMetrics
+
+# Average AUC for the best model
+best_model_auc =  max(avg_auc)
+
+# What's the optimal parameter value?
+opt_max_depth = cv.bestModel.explainParam('maxDepth')
+opt_feat_substrat = cv.bestModel.explainParam('featureSubsetStrategy')
+
+# AUC for best model on testing data
+best_auc = evaluator.evaluate(cv.transform(flights_test))
+
+#*****************************************************************************#
